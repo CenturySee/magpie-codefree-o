@@ -1,0 +1,24 @@
+{
+  "name": "opencode-codefree-o-auth",
+  "version": "0.1.0",
+  "description": "Unofficial CodeFree-O local sign-in provider for magpie and OpenCode",
+  "repository": { "type": "git", "url": "git+https://github.com/CenturySee/magpie-codefree-o.git" },
+  "homepage": "https://github.com/CenturySee/magpie-codefree-o#readme",
+  "bugs": { "url": "https://github.com/CenturySee/magpie-codefree-o/issues" },
+  "type": "module",
+  "main": "./opencode.mjs",
+  "exports": { ".": "./opencode2.mjs" },
+  "files": ["opencode.mjs", "opencode2.mjs", "runtime.mjs", "scripts", "test", "README.md", "LICENSE"],
+  "scripts": { "test": "node --test", "smoke": "node scripts/smoke.mjs" },
+  "keywords": ["opencode", "opencode-plugin", "magpie", "codefree-o"],
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "magpie": {
+    "name": "CodeFree-O",
+    "summary": {
+      "en": "Unofficial CodeFree-O provider using your local CLI sign-in, with live models and automatic token refresh. Tested on Windows 11.",
+      "zh": "非官方 CodeFree-O 接入：复用本机 CLI 登录态，支持动态模型目录与自动刷新令牌。已在 Windows 11 验证。"
+    },
+    "maxConcurrency": 4
+  }
+}

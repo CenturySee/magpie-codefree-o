@@ -1,0 +1,13 @@
+node_modules/
+*.tgz
+*.zip
+*.log
+.env
+.env.*
+.sandbox/
+.codefree-o/
+codefree.json
+codefree.json.*
+plugin-auth.json
+providers.json
+*.magpie.lock
