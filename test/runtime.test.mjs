@@ -99,6 +99,25 @@ test("401 retries once with a new token; quota 429 is not refreshed", async (t) 
   assert.equal(res.status, 429); assert.equal(calls, 2); assert.equal(refreshes, 2)
 })
 
+test("chat derives a stable sessionId per conversation and honors caller affinity", async (t) => {
+  const ref = await fixture(t)
+  const seen = []
+  const runtime = createRuntime({ fetchImpl: async (url, init) => {
+    if (url.includes("access_token")) return refreshed()
+    seen.push(init.headers.get("sessionid"))
+    return json({ choices: [{ message: { content: "OK" } }], usage: { prompt_tokens: 1, completion_tokens: 1 } })
+  } })
+  const call = (first, again) => runtime.chat(ref, BASE + "/chat/completions", { method: "POST", body: JSON.stringify({ model: "live-model", messages: [{ role: "system", content: "sys" }, { role: "user", content: first }, { role: "assistant", content: "OK" }, { role: "user", content: again }] }) })
+  await call("task one", "turn 2")
+  await call("task one", "turn 3")
+  await call("task two", "turn 2")
+  await runtime.chat(ref, BASE + "/chat/completions", { method: "POST", headers: { "x-session-affinity": "conversation-123" }, body: JSON.stringify({ model: "live-model", messages: [{ role: "user", content: "task one" }] }) })
+  assert.equal(seen[0], seen[1])
+  assert.notEqual(seen[0], seen[2])
+  assert.match(seen[0], /^ses_[0-9a-f]{64}$/)
+  assert.equal(seen[3], "conversation-123")
+})
+
 test("failed refresh never erases or changes CLI credentials", async (t) => {
   const ref = await fixture(t)
   const before = await readFile(ref.path, "utf8")
