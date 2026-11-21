@@ -193,6 +193,15 @@ export function createRuntime({ fetchImpl = globalThis.fetch, version = process.
     return Object.fromEntries(body.data.filter((m) => typeof m.modelName === "string" && m.modelName).map((m) => [m.modelName, modelRow(m)]))
   }
 
+  // The upstream gateway pins KV-cache routing to sessionId. A stable id per
+  // conversation keeps consecutive turns on the cache-holding node, as the
+  // official CLI does via x-session-affinity; random ids spread them.
+  function conversationId(parsed) {
+    const first = (parsed.messages ?? []).find((m) => m?.role === "user")
+    if (!first) return randomUUID()
+    return "ses_" + createHash("sha256").update(parsed.model + "\n" + JSON.stringify(first.content ?? "")).digest("hex")
+  }
+
   async function chat(ref, input, init) {
     const req = new Request(input, init)
     // Never forward authentication to a URL supplied by the caller.
@@ -205,7 +214,7 @@ export function createRuntime({ fetchImpl = globalThis.fetch, version = process.
     headers.set("modelName", parsed.model)
     headers.set("subService", "codefree_o_chat")
     headers.set("codefreeClient", "codefreeo")
-    headers.set("sessionId", headers.get("sessionId") || headers.get("x-session-affinity") || randomUUID())
+    headers.set("sessionId", headers.get("sessionId") || headers.get("x-session-affinity") || conversationId(parsed))
     return signedRequest(ref, CHAT_PATH, { method: "POST", headers, body, signal: req.signal })
   }
   return { token, models, chat }

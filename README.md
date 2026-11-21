@@ -66,6 +66,7 @@ magpie 保存的 key 仅包含**文件路径与账号 ID**，不包含访问令�
 - 官方生产、dev、test 站点；拒绝向其他站点发送凭据，拒绝 HTTP 重定向。
 - 不实现独立网页登录、SRDCLOUD 环境托管登录、额度查询或每日签到。
 - 模型 API 使用 Chat Completions；Responses、Anthropic 等客户端协议由 magpie 转换。
+- 无 `sessionId`/`x-session-affinity` 头的请求按对话派生稳定 `sessionId`，保持上游 KV-cache 亲和（与 CLI 注入 `x-session-affinity` 的行为一致），避免相邻轮次被分发到无缓存的推理节点。
 - 不伪造免费价格；实际额度和计费沿用研发云账号，调用会消耗账号额度。
 
 `MAGPIE_CODEFREE_VERSION` 可以覆盖请求中的 CLI 版本，默认 `1.10.1`。此值参与模型目录地址与 clientVersion 请求头；上游协议变化仍需更新插件。
